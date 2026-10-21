@@ -700,6 +700,33 @@ namespace Ra2CsfToolsGUI.LocalizationResources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Preserve the leading and trailing whitespace of value lines when loading a .ini file..
+        /// </summary>
+        public static string Xaml_Txt_SettingsIniValueWhitespaceCheckbox1 {
+            get {
+                return ResourceManager.GetString("Xaml_Txt_SettingsIniValueWhitespaceCheckbox1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to INI Value Whitespace Options.
+        /// </summary>
+        public static string Xaml_Txt_SettingsIniValueWhitespaceGroupboxHeader {
+            get {
+                return ResourceManager.GetString("Xaml_Txt_SettingsIniValueWhitespaceGroupboxHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The INI parser used by this tool trims the leading and the trailing whitespace characters of every value.
+        /// </summary>
+        public static string Xaml_Txt_SettingsIniValueWhitespaceTextBlock1 {
+            get {
+                return ResourceManager.GetString("Xaml_Txt_SettingsIniValueWhitespaceTextBlock1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Order by key.
         /// </summary>
         public static string Xaml_Txt_SettingsLabelOrderCheckbox1 {

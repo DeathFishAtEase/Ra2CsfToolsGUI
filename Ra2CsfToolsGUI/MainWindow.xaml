@@ -115,6 +115,15 @@
                         <CheckBox FontSize="16" Content="{x:Static l10n:TextResources.Xaml_Txt_SettingsLabelOrderCheckbox1}" IsChecked="{Binding OrderByKey}" />
                     </ui:SimpleStackPanel>
                 </GroupBox>
+                <!-- Xaml_Txt_SettingsIniValueWhitespaceGroupboxHeader: INI Value Whitespace Options -->
+                <GroupBox Header="{x:Static l10n:TextResources.Xaml_Txt_SettingsIniValueWhitespaceGroupboxHeader}" Visibility="{Binding Converter={StaticResource BoolToVisConverter}, Path=AdvancedMode}">
+                    <ui:SimpleStackPanel Spacing="12">
+                        <!-- Xaml_Txt_SettingsIniValueWhitespaceTextBlock1: The INI parser used by this tool trims the leading and the trailing whitespace characters of every value ... -->
+                        <TextBlock TextWrapping="Wrap" FontSize="16" Text="{x:Static l10n:TextResources.Xaml_Txt_SettingsIniValueWhitespaceTextBlock1}"/>
+                        <!-- Xaml_Txt_SettingsIniValueWhitespaceCheckbox1: Preserve the leading and trailing whitespace of value lines when loading a .ini file. -->
+                        <CheckBox FontSize="16" Content="{x:Static l10n:TextResources.Xaml_Txt_SettingsIniValueWhitespaceCheckbox1}" IsChecked="{Binding PreserveIniValueWhitespace}" />
+                    </ui:SimpleStackPanel>
+                </GroupBox>
                 <!-- Xaml_Txt_SettingsEncoding1252GroupboxHeader: Encoding 1252 Workaround Options -->
                 <GroupBox Header="{x:Static l10n:TextResources.Xaml_Txt_SettingsEncoding1252GroupboxHeader}" Visibility="{Binding Converter={StaticResource BoolToVisConverter}, Path=AdvancedMode}">
                     <ui:SimpleStackPanel Spacing="12">

@@ -402,6 +402,15 @@
   <data name="Cs_Txt_LabelCheckLabel0Warning" xml:space="preserve">
     <value>Something you should be aware of. There is a label named "0".</value>
   </data>
+  <data name="Xaml_Txt_SettingsIniValueWhitespaceCheckbox1" xml:space="preserve">
+    <value>Preserve the leading and trailing whitespace of value lines when loading a .ini file.</value>
+  </data>
+  <data name="Xaml_Txt_SettingsIniValueWhitespaceGroupboxHeader" xml:space="preserve">
+    <value>INI Value Whitespace Options</value>
+  </data>
+  <data name="Xaml_Txt_SettingsIniValueWhitespaceTextBlock1" xml:space="preserve">
+    <value>The INI parser used by this tool trims the leading and the trailing whitespace characters of every value, so a line like `Value=    a` is loaded as `a`. The .csf file format itself has no such limitation. Check the box below to keep the whitespace when loading a .ini file, so that a .csf file whose values start with spaces can be generated. Note that the game engine trims these spaces at runtime, which means this option is only useful together with an engine-side patch.</value>
+  </data>
   <data name="Xaml_Txt_SettingsLabelOrderCheckbox1" xml:space="preserve">
     <value>Order by key</value>
   </data>

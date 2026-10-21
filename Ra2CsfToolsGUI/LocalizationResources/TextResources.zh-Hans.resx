@@ -402,6 +402,15 @@
   <data name="Cs_Txt_LabelCheckLabel0Warning" xml:space="preserve">
     <value>有件事您该注意。有一个名为“0”的标签。</value>
   </data>
+  <data name="Xaml_Txt_SettingsIniValueWhitespaceCheckbox1" xml:space="preserve">
+    <value>加载 .ini 文件时保留值行首与行尾的空白字符。</value>
+  </data>
+  <data name="Xaml_Txt_SettingsIniValueWhitespaceGroupboxHeader" xml:space="preserve">
+    <value>INI 值空白字符选项</value>
+  </data>
+  <data name="Xaml_Txt_SettingsIniValueWhitespaceTextBlock1" xml:space="preserve">
+    <value>本工具使用的 INI 解析器会裁掉每个值行首与行尾的空白字符，因此 `Value=    a` 会被加载为 `a`。.csf 文件格式本身没有这种限制。勾选下方复选框可在加载 .ini 文件时保留这些空白字符，从而生成值以空格开头的 .csf 文件。注意：游戏引擎会在运行时裁掉这些空格，因此该选项通常需要配合引擎侧补丁使用。</value>
+  </data>
   <data name="Xaml_Txt_SettingsLabelOrderCheckbox1" xml:space="preserve">
     <value>按键名排序</value>
   </data>

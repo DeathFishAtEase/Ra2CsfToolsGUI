@@ -104,6 +104,17 @@ namespace Ra2CsfToolsGUI
             }
         }
 
+        private bool _PreserveIniValueWhitespace = false;
+        public bool PreserveIniValueWhitespace
+        {
+            get => this._PreserveIniValueWhitespace;
+            set
+            {
+                this._PreserveIniValueWhitespace = value;
+                this.NotifyPropertyChanged();
+            }
+        }
+
         /// <summary>
         /// This method is called by the Set accessor of each property. <br/>
         /// The CallerMemberName attribute that is applied to the optional propertyName parameter causes the property name of the caller to be substituted as an argument.  
@@ -246,7 +257,7 @@ namespace Ra2CsfToolsGUI
                 case ".ini":
                     using (var fs = File.Open(filepath, FileMode.Open, FileAccess.Read, FileShare.Read))
                     {
-                        return CsfFileIniHelper.LoadFromIniFile(fs, this.GetCsfFileOptions());
+                        return LoadCsfFileFromIniFile(fs, this.GetCsfFileOptions(), this.PreserveIniValueWhitespace);
                     }
                 // break;
                 case ".yaml":
@@ -545,15 +556,142 @@ namespace Ra2CsfToolsGUI
 
         private static string GetIniLabelValueKeyName(int lineIndex) => "Value" + ((lineIndex == 1) ? string.Empty : string.Format("Line{0}", lineIndex));
 
+        private const string CsfIniHeaderSectionName = "SadPencil.Ra2CsfFile.Ini";
+
+        /// <summary>
+        /// Read a raw .ini content without trimming the leading and trailing whitespace characters of the values. <br/>
+        /// The ini parser used by SadPencil.Ra2CsfFile (ini-parser-netstandard 2.5.2) trims every parsed value unconditionally,
+        /// and this fork of ini-parser exposes no configuration switch to turn the trimming off.
+        /// </summary>
+        /// <returns>
+        /// A dictionary that maps the section name to the key-value pairs of the section. The key name is trimmed, while the value is kept as-is.
+        /// </returns>
+        private static Dictionary<string, Dictionary<string, string>> ParseRawIniValues(string iniContent)
+        {
+            var result = new Dictionary<string, Dictionary<string, string>>(StringComparer.InvariantCultureIgnoreCase);
+            string currentSectionName = null;
+
+            foreach (string rawLine in iniContent.Split('\n'))
+            {
+                string line = rawLine.TrimEnd('\r');
+                string trimmedLine = line.Trim();
+
+                if (trimmedLine.Length == 0)
+                {
+                    continue;
+                }
+
+                if (trimmedLine[0] == '[' && trimmedLine[trimmedLine.Length - 1] == ']')
+                {
+                    currentSectionName = trimmedLine.Substring(1, trimmedLine.Length - 2).Trim();
+
+                    if (!result.ContainsKey(currentSectionName))
+                    {
+                        result.Add(currentSectionName, new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase));
+                    }
+
+                    continue;
+                }
+
+                if (currentSectionName == null)
+                {
+                    continue;
+                }
+
+                int assigmentIndex = line.IndexOf('=');
+                if (assigmentIndex < 0)
+                {
+                    continue;
+                }
+
+                string keyName = line.Substring(0, assigmentIndex).Trim();
+                if (keyName.Length == 0)
+                {
+                    continue;
+                }
+
+                // Note: the value is intentionally left untrimmed, as both the leading and the trailing whitespace characters are part of the value.
+                string value = line.Substring(assigmentIndex + 1);
+
+                result[currentSectionName][keyName] = value;
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Load an existing .ini file that represents the string table. <br/>
+        /// If <paramref name="preserveValueWhitespace"/> is <c>true</c>, the leading and the trailing whitespace characters
+        /// of every label value line are preserved, so that a line starting with spaces can be written into the generated .csf file.
+        /// </summary>
+        /// <param name="stream">The file stream of an .ini file.</param>
+        /// <param name="options">The CsfFileOptions.</param>
+        /// <param name="preserveValueWhitespace">Whether to keep the leading and the trailing whitespace characters of the values.</param>
+        private static CsfFile LoadCsfFileFromIniFile(Stream stream, CsfFileOptions options, bool preserveValueWhitespace)
+        {
+            if (!preserveValueWhitespace)
+            {
+                return CsfFileIniHelper.LoadFromIniFile(stream, options);
+            }
+
+            string iniContent;
+            using (var sr = new StreamReader(stream, new UTF8Encoding(false), true))
+            {
+                iniContent = sr.ReadToEnd();
+            }
+
+            // The label names, the line counts, and the language are read with the official helper,
+            // while the values are restored afterwards from the raw file content.
+            CsfFile csf;
+            using (var ms = new MemoryStream(new UTF8Encoding(false).GetBytes(iniContent)))
+            {
+                csf = CsfFileIniHelper.LoadFromIniFile(ms, options);
+            }
+
+            Dictionary<string, Dictionary<string, string>> rawValues = ParseRawIniValues(iniContent);
+            string lineBreak = CsfFile.LineBreakCharacters;
+
+            foreach (string labelName in csf.Labels.Keys.ToList())
+            {
+                if (string.Equals(labelName, CsfIniHeaderSectionName, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (!rawValues.TryGetValue(labelName, out Dictionary<string, string> rawKeys))
+                {
+                    continue;
+                }
+
+                string trimmedValue = csf.Labels[labelName];
+                string[] lines = trimmedValue.Split(new string[] { lineBreak }, StringSplitOptions.None);
+                var restoredLines = new List<string>(lines.Length);
+
+                for (int iLine = 1; iLine <= lines.Length; iLine++)
+                {
+                    string keyName = GetIniLabelValueKeyName(iLine);
+                    restoredLines.Add(rawKeys.TryGetValue(keyName, out string rawValue) ? rawValue : lines[iLine - 1]);
+                }
+
+                string restoredValue = string.Join(lineBreak, restoredLines);
+
+                if (!string.Equals(restoredValue, trimmedValue, StringComparison.Ordinal))
+                {
+                    _ = csf.AddLabel(labelName, restoredValue);
+                }
+            }
+
+            return csf;
+        }
+
         private static IniData GeneralProcessCsfIniLabels(CsfFile csf, Action<string, string, string, int> valueAction = null, Action<string, KeyDataCollection> sectionAction = null)
         {
             var ini = GetNewIniFileFromCsfFile(csf);
 
             // process ini
-            const string INI_FILE_HEADER_SECTION_NAME = "SadPencil.Ra2CsfFile.Ini";
             // load all labels
             var labelSections = new Dictionary<string, KeyDataCollection>(StringComparer.InvariantCultureIgnoreCase);
-            foreach (var (k, v) in ini.Sections.Where(section => section.SectionName != INI_FILE_HEADER_SECTION_NAME)
+            foreach (var (k, v) in ini.Sections.Where(section => section.SectionName != CsfIniHeaderSectionName)
                 .Select(section => (section.SectionName, ini.Sections[section.SectionName])))
             {
                 labelSections.Add(k, v);
